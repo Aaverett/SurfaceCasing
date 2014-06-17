@@ -1,0 +1,182 @@
+﻿body {
+   background: gray;
+	font-family: Tahoma, Arial;
+}
+
+#maindiv
+{
+    /*border: 1px solid white;*/
+}
+
+#headingdiv
+{
+    width: 1000px;
+    height: 65px;
+    border: 1px solid black;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 5px;
+}
+
+#mapdiv
+{
+    border: 1px solid black;
+    position: absolute;
+}
+
+#toolbardiv
+{
+    margin-top: 5px;
+    background-color: #cfd0d1;
+    border: 1px solid Black;
+}
+
+#drawing
+{
+    position: absolute; 
+    width: 50px; 
+    height: 50px; 
+    background: #ffffff; 
+    bottom: 150px; 
+    right: 50px; 
+    z-index: 5000;
+    text-align: center;
+    border: 1px solid #000000;
+}
+
+#legenddiv
+{
+    z-index: 10;
+    border: 1px solid black;;
+    position: absolute;
+    background-color: #cfd0d1;
+}
+
+#legenddiv_heading
+{
+    background-color: #aaaaaa;
+    padding: 5px;
+    color: #ffffff;
+}
+
+#legenddiv_contents
+{
+    overflow: scroll;
+}
+
+#goToLatLonDialog
+{
+    border: 2px solid #aaaaaa;
+    background: #dddddd;
+    position: absolute;
+    display: none;
+    z-index: 20;
+    width: 400px;
+    height: 300px;
+}
+
+#goToCountyDialog
+{
+    border: 2px solid #aaaaaa;
+    background: #dddddd;
+    position: absolute;
+    display: none;
+    z-index: 20;
+    width: 400px;
+    height: 300px;
+}
+
+#goToCountyContentsDiv
+{
+    overflow: scroll;
+}
+
+#countyDialogToggleLink
+{
+    float: right;
+    color: #ffffff;
+}
+
+#helplinkdiv
+{
+    float: right;
+    background: #ffffff;
+    border: 1px solid black;
+    padding: 5px;
+}
+
+.legend_entry
+{
+    background-color: #dddddd;
+    border: 1px solid #bbbbbb;
+    padding: 3px;
+    font-size: 10px;
+}
+
+a#legendtogglelink
+{
+    float: right;
+    color: #ffffff;
+}
+
+a#legendtogglelink:visited
+{
+    color: #ffffff;
+}
+
+#countiesworkingdiv
+{
+}
+
+#countieslink
+{
+    display: block;
+}
+
+table.resulttable
+{
+	/*width: 1000px;*/
+	background: #000000;
+	font-size: 12px;
+}
+
+table.resulttable tr th
+{
+	background-color: #000000;
+	color: #ffffff;
+	
+}
+
+table.resulttable tr
+{
+	background: #ffffff;
+}
+
+table.resulttable tr td.linkcell
+{
+	text-align: center;
+}
+
+div.toolbarspacer
+{
+    float: left;
+    width: 20px;
+}
+
+div.toolbarbutton
+{
+    float: left;
+    font-size: 12px;
+    width: 75px;
+    height: 75px;
+}
+
+a:visited
+{
+    color: blue;
+}
+
+a img
+{
+    border: 0px;
+}

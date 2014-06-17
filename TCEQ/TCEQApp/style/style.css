@@ -1,0 +1,166 @@
+﻿body 
+{
+	background: gray;
+	font-family: Tahoma, Arial;
+}
+
+div.headingdiv
+{
+	position: relative;
+	width: 1000px;
+	margin-right: auto;
+	margin-left: auto;
+	text-align: center;
+}
+
+div.maincontainer
+{
+	position: relative;
+	width: 1000px;
+	height: 650px;
+	margin-right: auto;
+	margin-left: auto;
+	border: 1px solid black;
+}
+
+div.detailsdiv
+{
+	margin-top: 10px;
+	position: relative;
+	width: 1000px;
+	margin-right: auto;
+	margin-left: auto;
+	border: 1px solid black;
+	background: #ffffff;
+}
+
+div.stealthcontentdiv
+{
+	margin-top: 10px;
+	position: relative;
+	width: 1000px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+div.contentdiv
+{
+	font-size: 13px;
+	margin-top: 10px;
+	position: relative;
+	width: 1000px;
+	margin-right: auto;
+	margin-left: auto;
+	border: 1px solid black;
+	background: #cfd0d1;
+}
+
+div.formattable
+{
+	width: 100%;
+}
+
+div.mapdiv
+{
+	width: 800px;
+	height: 600px;
+}
+
+div.toolbardiv
+{
+	top: 600px;
+	background: #cfd0d1;
+	width: 800px;
+	height: 50px;
+}
+
+div.legenddiv
+{
+	position: absolute;
+	top:200px;
+	right: 0px;
+	width: 200px;
+	height: 450px;
+	background: #ffffff;
+	
+}
+
+div.overviewmapdiv
+{
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 200px;
+	height: 200px;
+	background: #ffffff;
+	overflow: hidden;	
+}
+
+div.hidden
+{
+	display: none;
+}
+
+div.addspadding
+{
+	position: relative;
+	margin: 10px;	
+}
+
+div.alignright
+{
+	position: absolute;
+	right: 0px;
+	top: 0px;
+}
+
+div.center
+{
+	text-align: center;
+}
+
+table.resulttable
+{
+	width: 1000px;
+	background: #000000;
+	font-size: 12px;
+}
+
+table.resulttable tr th
+{
+	background-color: #000000;
+	color: #ffffff;
+	
+}
+
+table.resulttable tr
+{
+	background: #ffffff;
+}
+
+table.resulttable tr td.linkcell
+{
+	text-align: center;
+}
+
+span.heading1
+{
+	font-size: 20px;
+	display: block;
+	margin: 5px;
+}
+
+span.heading2
+{
+	font-size: 16px;
+	color: #333399;
+	display: block;
+	margin: 5px;
+}
+
+span.heading3
+{
+	font-size: 14px;
+	display: block;
+	margin: 5px;
+}

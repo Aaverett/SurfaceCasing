@@ -1,0 +1,67 @@
+﻿/* Separate style sheet for the printable page. */
+body 
+{
+	font-family: Tahoma, Arial;
+}
+
+div.titlediv
+{
+	position: relative;
+	width: 875px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-bottom: 10px;
+}
+
+span.titlespan
+{
+	font-size: 30px;
+	font-weight: bold;
+}
+
+div.maindiv
+{
+	position: relative;
+	width: 875px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+div.tocdiv
+{
+	position: relative;
+	width: 875px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 5px;
+}
+
+div.toc_ext
+{
+	overflow: visible;
+}
+
+div.overviewdiv
+{
+	position: absolute;
+	top: 0px;
+	right: -1px;
+	width: 192px;
+	height: 192px;
+	overflow: hidden;
+	text-align: right;
+	border: 1px solid black;	
+}
+
+div.scalebardiv
+{
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	z-index: 5000;
+}
+
+div.unprintablediv
+{
+	display: none;
+}
