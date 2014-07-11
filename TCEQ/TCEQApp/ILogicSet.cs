@@ -13,8 +13,14 @@ public interface ILogicSet
     object GetFactoryKey();
 
     HtmlGenericControl GenerateOutputControl();
-    
-    ESRI.ArcGIS.Geometry.IPoint coords
+
+    ArcGISRESTClient.ArcGISRESTClient RestClient
+    {
+        set;
+        get;
+    }
+
+    ArcGISRESTClient.Geometry.Point coords
     {
         set;
         get;
@@ -73,12 +79,6 @@ public interface ILogicSet
     double usdwgsfc
     {
         get;
-    }
-
-    BEGWebAppLib.GISHandler g
-    {
-        get;
-        set;
     }
 
     double latitude

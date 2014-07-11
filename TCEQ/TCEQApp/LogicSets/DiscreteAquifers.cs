@@ -25,7 +25,9 @@ public class DiscreteAquifers : BaseLogicSet
         List<AquiferRecord> rs = new List<AquiferRecord>();
 
         //Now, we'll get the aquifer data.
-        System.Data.DataTable aquifers = g.performBaseFeatureDataQuery(string.Empty, (ESRI.ArcGIS.Geometry.IGeometry)_coords, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelWithin, "sde.SDE.TCEQ_Aquifers");
+        ArcGISRESTClient.Layer l = RestClient.GetLayerByName("sde.SDE.TCEQ_Aquifers");
+
+        System.Data.DataTable aquifers = l.Query(null, _coords.GetJValue());
 
         //For each aquifer we found...
         for (int i = 0; i < aquifers.Rows.Count; i++)
@@ -60,7 +62,9 @@ public class DiscreteAquifers : BaseLogicSet
                     {
                         try
                         {
-                            double top_val = g.queryRaster(_coords, top_raster_name);
+                            ArcGISRESTClient.Layer topRaster = RestClient.GetLayerByName(top_raster_name);
+
+                            double top_val = topRaster.QueryRasterLayer(_coords.X, _coords.Y);
                             aquiferrecord.top_elev = top_val;
 
                             aquiferrecord.top_gsfc = elevation - top_val;
@@ -80,7 +84,9 @@ public class DiscreteAquifers : BaseLogicSet
                     {
                         try
                         {
-                            double bot_val = g.queryRaster(_coords, bot_raster_name);
+                            ArcGISRESTClient.Layer botRaster = RestClient.GetLayerByName(bot_raster_name);
+
+                            double bot_val = botRaster.QueryRasterLayer(_coords.X, _coords.Y);
                             aquiferrecord.bottom_elev = bot_val;
 
                             aquiferrecord.bottom_gsfc = elevation - bot_val;

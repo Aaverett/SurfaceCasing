@@ -11,7 +11,6 @@ using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
 using System.Web.UI.HtmlControls;
 
-using BEGWebAppLib;
 /// <summary>
 /// Sadly, it doesn't seem to be possible to 
 /// </summary>

@@ -27,53 +27,44 @@ public class TCEQAjaxService : System.Web.Services.WebService {
         //InitializeComponent(); 
     }
 
-    protected GISHandler getGISHandler()
+    protected string GetSettingValueFromConfig(string settingName)
     {
-        ESRI.ArcGIS.ADF.Web.UI.WebControls.MapResourceManager mrm = new ESRI.ArcGIS.ADF.Web.UI.WebControls.MapResourceManager();
+        string ret = string.Empty;
 
-        ESRI.ArcGIS.ADF.Web.UI.WebControls.MapResourceItem mri = new ESRI.ArcGIS.ADF.Web.UI.WebControls.MapResourceItem();
-        mri.Definition = new ESRI.ArcGIS.ADF.Web.UI.WebControls.GISResourceItemDefinition(MRI_DEFINITION_STRING);
-        mrm.ResourceItems.Add(mri);
+        try
+        {
+            //System.Configuration.Configuration rootWebConfig = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration(null);
 
-        //Force initialization of the resource items.
-        mrm.Initialize();
+            string setting = System.Configuration.ConfigurationManager.AppSettings[settingName];
 
-        //GISHandler g = new GISHandler("TCEQ", "igor", "TCEQ Surface Casing Estimator");
+            if (setting != null)
+            {
+                ret = setting;
+            }
+        }
+        catch
+        {
+            //There's not much to be done in the error handling at this point.  We just return nothing, and let whatever needed the value handle the issue.
+        }
 
-        GISHandler g = new GISHandler(mrm, 0);
-
-        return g;
+        return ret;
     }
+
 
     [WebMethod]
     public AJAXCasingRequestResponse casingQuery(double lon, double lat)
     {
-        GISHandler g = getGISHandler();
+        ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        ESRI.ArcGIS.ADF.Web.Geometry.Point pt = new ESRI.ArcGIS.ADF.Web.Geometry.Point(lon, lat);
+        string logicLayerName = GetSettingValueFromConfig("LOGIC_LAYER_NAME");
 
-        ESRI.ArcGIS.ADF.ArcGISServer.Point padf = (ESRI.ArcGIS.ADF.ArcGISServer.Point) g.translateWebToADF(pt);
-
-        ESRI.ArcGIS.Geometry.IPoint ip = (ESRI.ArcGIS.Geometry.IPoint) g.translateADFToAO(padf);
-
-        //Now, we need to hit the GeoDB again, to find out what logic we need to use for that point.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected_1 = g.project((ESRI.ArcGIS.Geometry.IGeometry)ip, constants.GCS_COORDINATE_SYSTEM_ID, 3081);
-        ESRI.ArcGIS.Geometry.IPoint ip1 = (ESRI.ArcGIS.Geometry.IPoint)ig_projected_1;
+        ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(logicLayerName);
         
-        DataTable dt = g.performBaseFeatureDataQuery("", ig_projected_1, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelWithin, LOGIC_LAYER_NAME);
+        DataTable dt = logicLayer.Query(null,p.GetJValue());
 
-        //Label the point the user clicked.
-        ESRI.ArcGIS.ADF.ArcGISServer.PointN pn = (ESRI.ArcGIS.ADF.ArcGISServer.PointN)ESRI.ArcGIS.ADF.ArcGISServer.Local.Converter.ComObjectToValueObject(ip, g._sc, typeof(ESRI.ArcGIS.ADF.ArcGISServer.PointN));
-        
+        //Create a label to display on the map
         string label = string.Empty;
-
-        //* * * * * * * * * * * * * * * * * * * * * * * * *
-        //It should be noted that ip is actually NOT projected here.  This code is lifted from the original version of this application, where the map control on the 
-        //page would send coords in TSMS, which had to be converted back to GCS for processing.  Now that we're using google maps, that's no longer the case,
-        //and we need to convert the GCS values to TSMS for querying the business logic layer, and then just pass the GCS values into the rest of the logic.
-        //* * * * * * * * * * * * * * * * * * * * * * * * *
-        ESRI.ArcGIS.Geometry.IPoint ip_projected = ip;
-        label = "Casing Query\r\nLat: " + Math.Round(ip_projected.Y, 6).ToString() + "\r\nLong: " + Math.Round(ip_projected.X, 6).ToString();
+        label = "Casing Query\r\nLat: " + lat.ToString() + "\r\nLong: " + lon.ToString();
 
         //Create a control to house our results
         HtmlGenericControl contentsdiv = null;
@@ -87,6 +78,8 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
+                object o = dt.Rows[i]["ProcessorClass"];
+
                 //Make sure we didn't get a null value.
                 if (dt.Rows[i]["ProcessorClass"] != null && !(dt.Rows[i]["ProcessorClass"] is System.DBNull))
                 {
@@ -96,10 +89,10 @@ public class TCEQAjaxService : System.Web.Services.WebService {
                     if (ils != null)
                     {
                         //Pass the objecthandler to the logic set.
-                        ils.g = g;
+                        ils.RestClient = RestClient;
 
                         //Pass the coords to the logic set
-                        ils.coords = ip;
+                        ils.coords = p;
 
                         contentsdiv = ils.GenerateOutputControl();
 
@@ -162,28 +155,20 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     [WebMethod]
     public AJAXCasingRequestResponse logQuery(double lon, double lat)
     {
-        GISHandler g = getGISHandler();
+        ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        ESRI.ArcGIS.ADF.Web.Geometry.Point pt = new ESRI.ArcGIS.ADF.Web.Geometry.Point(lon, lat);
-        ESRI.ArcGIS.ADF.ArcGISServer.Point padf = (ESRI.ArcGIS.ADF.ArcGISServer.Point)g.translateWebToADF(pt);
+        string logicLayerName = GetSettingValueFromConfig("QWELLS_LAYER_NAME");
 
-        ESRI.ArcGIS.Geometry.IPoint ip = (ESRI.ArcGIS.Geometry.IPoint)g.translateADFToAO(padf);
+        ArcGISRESTClient.Layer qwellsLayer = RestClient.GetLayerByName(logicLayerName);
 
-        //Now, we need to hit the GeoDB again, to find out what logic we need to use for that point.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected_1 = g.project((ESRI.ArcGIS.Geometry.IGeometry)ip, constants.GCS_COORDINATE_SYSTEM_ID, 3081);
-        ESRI.ArcGIS.Geometry.IPoint ip1 = (ESRI.ArcGIS.Geometry.IPoint)ig_projected_1;
-
-        ESRI.ArcGIS.Geometry.IPolygon poly = g.bufferPoint(ip1, 400);
-        //ESRI.ArcGIS.Geometry.IPolygon poly = g.pointFudgeAO(sp, m, constants.MAP_CLICK_FUDGE_DISTANCE, 3081, 3081);
-
-        DataTable dt = g.performBaseFeatureDataQuery("", poly, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelContains, QWELLS_LAYER_NAME);
-
+        DataTable dt = qwellsLayer.Query(null, p.GetJValue());
+        
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
 
         double lat1 = 0;
         double lon1 = 0;
 
-        ESRI.ArcGIS.Geometry.IPoint ip_marker = null;
+        ArcGISRESTClient.Geometry.Point p_marker = null;
 
         string html;
 
@@ -214,9 +199,9 @@ public class TCEQAjaxService : System.Web.Services.WebService {
             {
                 object s = dt.Rows[i]["SHAPE"];
 
-                if (s is ESRI.ArcGIS.Geometry.IPoint)
+                if (s is ArcGISRESTClient.Geometry.Point)
                 {
-                    ip_marker = (ESRI.ArcGIS.Geometry.IPoint)dt.Rows[i]["SHAPE"];
+                    p_marker = (ArcGISRESTClient.Geometry.Point)dt.Rows[i]["SHAPE"];
                 }
 
                 //Assemble a set of controls describing each record (supposed to be wells)
@@ -287,12 +272,10 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
         AJAXCasingRequestResponse acrr = new AJAXCasingRequestResponse();
 
-        if (ip_marker != null)
+        if (p_marker != null)
         {
-            ESRI.ArcGIS.Geometry.IPoint ip_marker_gcs = (ESRI.ArcGIS.Geometry.IPoint) g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ip_marker, 3081, constants.GCS_COORDINATE_SYSTEM_ID);
-
-            lat1 = ip_marker_gcs.Y;
-            lon1 = ip_marker_gcs.X;
+            lat1 = p_marker.Y;
+            lon1 = p_marker.X;
         }
 
         acrr.detailsHTML = html;
@@ -305,23 +288,13 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     [WebMethod]
     public AJAXCasingRequestResponse surveyInfoQuery(double lon, double lat)
     {
-        GISHandler g = getGISHandler();
+        ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        ESRI.ArcGIS.ADF.Web.Geometry.Point pt = new ESRI.ArcGIS.ADF.Web.Geometry.Point(lon, lat);
-        ESRI.ArcGIS.ADF.ArcGISServer.Point padf = (ESRI.ArcGIS.ADF.ArcGISServer.Point)g.translateWebToADF(pt);
+        string logicLayerName = GetSettingValueFromConfig("SURVEY_LAYER_NAME");
 
-        ESRI.ArcGIS.Geometry.IPoint ip1 = (ESRI.ArcGIS.Geometry.IPoint)g.translateADFToAO(padf);
+        ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(logicLayerName);
 
-        //Project to the TSMS coord system that the base data use.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected_1 = g.project((ESRI.ArcGIS.Geometry.IGeometry)ip1, constants.GCS_COORDINATE_SYSTEM_ID, 3081);
-        ESRI.ArcGIS.Geometry.IPoint point = (ESRI.ArcGIS.Geometry.IPoint)ig_projected_1;
-
-        //This is the layer ID of the surveys layer.
-        int layerID = 7;
-
-        string datasetname = TCEQFuncs.getDataSetName(layerID);
-
-        DataTable dt = g.performBaseFeatureDataQuery("", point, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelIntersects, datasetname);
+        DataTable dt = logicLayer.Query(null, p.GetJValue());
 
         //We need to set those features as selected.
 
@@ -329,11 +302,8 @@ public class TCEQAjaxService : System.Web.Services.WebService {
         contentsdiv.ID = "contentsdiv";
 
         //This block marks the spot on the map.
-        string label = string.Empty;
-        ESRI.ArcGIS.Geometry.IPoint ip = point;
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected = g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ip, 102603, 4019);
-        ESRI.ArcGIS.Geometry.IPoint ip_projected = (ESRI.ArcGIS.Geometry.IPoint)ig_projected;
-        label = "Lat: " + Math.Round(ip_projected.Y, 6).ToString() + "\r\nLong: " + Math.Round(ip_projected.X, 6).ToString();
+        
+        string label = "Lat: " + Math.Round(lat, 6).ToString() + "\r\nLong: " + Math.Round(lon, 6).ToString();
 
 
         /*g.addPoint(ip, 0, 255, 128, ESRI.ArcGIS.ADF.ArcGISServer.esriSimpleMarkerStyle.esriSMSDiamond);
@@ -421,24 +391,13 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     }
 
     [WebMethod]
-    public AJAXCasingRequestResponse identifyQuery(double lon, double lat, int layerID)
+    public AJAXCasingRequestResponse identifyQuery(double lon, double lat, string layerName)
     {
-        string datasetname = TCEQFuncs.getDataSetName(layerID);
+        ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        GISHandler g = getGISHandler();
+        ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(layerName);
 
-        ESRI.ArcGIS.ADF.Web.Geometry.Point pt = new ESRI.ArcGIS.ADF.Web.Geometry.Point(lon, lat);
-        ESRI.ArcGIS.ADF.ArcGISServer.Point padf = (ESRI.ArcGIS.ADF.ArcGISServer.Point)g.translateWebToADF(pt);
-
-        ESRI.ArcGIS.Geometry.IPoint ip1 = (ESRI.ArcGIS.Geometry.IPoint)g.translateADFToAO(padf);
-
-        //Project to the TSMS coord system that the base data use.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected_1 = g.project((ESRI.ArcGIS.Geometry.IGeometry)ip1, constants.GCS_COORDINATE_SYSTEM_ID, 3081);
-        ESRI.ArcGIS.Geometry.IPoint point = (ESRI.ArcGIS.Geometry.IPoint)ig_projected_1;
-
-        ESRI.ArcGIS.Geometry.IPolygon poly = g.bufferPoint(point, 50);
-
-        DataTable dt = g.performBaseFeatureDataQuery("", poly, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelIntersects, datasetname);
+        DataTable dt = logicLayer.Query(null, p.GetJValue());
 
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
         contentsdiv.ID = "contentsdiv";
@@ -513,10 +472,15 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     [WebMethod]
     public GetCountiesAJAXResponse getCountyEnvelope(int countyID)
     {
-        GISHandler g = getGISHandler();
+        string logicLayerName = GetSettingValueFromConfig("COUNTY_LAYER_NAME");
 
-        //Here, we're going to deal with the little county selector dealie.
-        DataTable dt_counties = g.performBaseFeatureDataQuery("OBJECTID=" + countyID, null, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelUndefined, "sde.SDE.TCEQ_Counties");
+        ArcGISRESTClient.Layer countyLayer = RestClient.GetLayerByName(logicLayerName);
+
+        string whereClause = "";
+
+        whereClause = "OBJECTID=" + countyID.ToString();
+
+        DataTable dt_counties = countyLayer.Query(whereClause);
 
         GetCountiesAJAXResponse gcar = new GetCountiesAJAXResponse();
 
@@ -528,29 +492,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
             county.countyName = dt_counties.Rows[0]["NAME"].ToString();
 
-            ESRI.ArcGIS.Geometry.IGeometry geom = (ESRI.ArcGIS.Geometry.IGeometry)dt_counties.Rows[0]["SHAPE"];
-
-            ESRI.ArcGIS.ADF.Web.Geometry.Polygon pgw = (ESRI.ArcGIS.ADF.Web.Geometry.Polygon)g.convertGeometryTypeWeb(geom);
-
-            ESRI.ArcGIS.ADF.Web.Geometry.Envelope ie = g.getEnvelope(pgw);
-
-            ESRI.ArcGIS.ADF.Web.Geometry.Point pne = new ESRI.ArcGIS.ADF.Web.Geometry.Point(ie.XMax, ie.YMax);
-
-            ESRI.ArcGIS.ADF.Web.Geometry.Point psw = new ESRI.ArcGIS.ADF.Web.Geometry.Point(ie.XMin, ie.YMin);
-
-            ESRI.ArcGIS.ADF.ArcGISServer.Geometry adfne = g.translateWebToADF((ESRI.ArcGIS.ADF.Web.Geometry.Geometry)pne);
-            ESRI.ArcGIS.ADF.ArcGISServer.Geometry adfsw = g.translateWebToADF((ESRI.ArcGIS.ADF.Web.Geometry.Geometry)psw);
-
-            ESRI.ArcGIS.Geometry.IPoint ipne = (ESRI.ArcGIS.Geometry.IPoint)g.translateADFToAO(adfne);
-            ESRI.ArcGIS.Geometry.IPoint ipsw = (ESRI.ArcGIS.Geometry.IPoint)g.translateADFToAO(adfsw);
-
-            ESRI.ArcGIS.Geometry.IPoint ipne_uproj = (ESRI.ArcGIS.Geometry.IPoint)g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ipne, 3081, constants.GCS_COORDINATE_SYSTEM_ID);
-            ESRI.ArcGIS.Geometry.IPoint ipsw_uproj = (ESRI.ArcGIS.Geometry.IPoint)g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ipsw, 3081, constants.GCS_COORDINATE_SYSTEM_ID);
-
-            county.xMax = ipne_uproj.X;
-            county.yMax = ipne_uproj.Y;
-            county.xMin = ipsw_uproj.X;
-            county.yMin = ipsw_uproj.Y;
+            object o = dt_counties.Rows[0]["SHAPE"];
 
             counties[0] = county;
             
@@ -564,10 +506,10 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     [WebMethod]
     public GetCountiesAJAXResponse getCounties()
     {
-        GISHandler g = getGISHandler();
-
         //Here, we're going to deal with the little county selector dealie.
-        DataTable dt_counties = g.performBaseFeatureDataQuery("hasdata=1", null,ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelUndefined, "sde.SDE.TCEQ_Counties");
+        ArcGISRESTClient.Layer countiesLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("COUNTY_LAYER_NAME"));
+
+        DataTable dt_counties = countiesLayer.Query("hasdata=1");
         
         GetCountiesAJAXResponse gcar = new GetCountiesAJAXResponse();
         
@@ -584,29 +526,12 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
             try
             {
-                ESRI.ArcGIS.Geometry.IGeometry geom = (ESRI.ArcGIS.Geometry.IGeometry)dt_counties.Rows[i]["SHAPE"];
+                object o = dt_counties.Rows[i]["SHAPE"];
 
-                ESRI.ArcGIS.ADF.Web.Geometry.Polygon pgw = (ESRI.ArcGIS.ADF.Web.Geometry.Polygon) g.convertGeometryTypeWeb(geom);
-
-                ESRI.ArcGIS.ADF.Web.Geometry.Envelope ie = g.getEnvelope(pgw);
-
-                ESRI.ArcGIS.ADF.Web.Geometry.Point pne = new ESRI.ArcGIS.ADF.Web.Geometry.Point(ie.XMax, ie.YMax);
-
-                ESRI.ArcGIS.ADF.Web.Geometry.Point psw = new ESRI.ArcGIS.ADF.Web.Geometry.Point(ie.XMin, ie.YMin);
-
-                ESRI.ArcGIS.ADF.ArcGISServer.Geometry adfne = g.translateWebToADF((ESRI.ArcGIS.ADF.Web.Geometry.Geometry)pne);
-                ESRI.ArcGIS.ADF.ArcGISServer.Geometry adfsw = g.translateWebToADF((ESRI.ArcGIS.ADF.Web.Geometry.Geometry)psw);
-
-                ESRI.ArcGIS.Geometry.IPoint ipne = (ESRI.ArcGIS.Geometry.IPoint) g.translateADFToAO(adfne);
-                ESRI.ArcGIS.Geometry.IPoint ipsw = (ESRI.ArcGIS.Geometry.IPoint) g.translateADFToAO(adfsw);
-
-                ESRI.ArcGIS.Geometry.IPoint ipne_uproj = (ESRI.ArcGIS.Geometry.IPoint) g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ipne, 3081, constants.GCS_COORDINATE_SYSTEM_ID);
-                ESRI.ArcGIS.Geometry.IPoint ipsw_uproj = (ESRI.ArcGIS.Geometry.IPoint) g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)ipsw, 3081, constants.GCS_COORDINATE_SYSTEM_ID);
-
-                county.xMax = ipne_uproj.X;
+                /*county.xMax = ipne_uproj.X;
                 county.yMax = ipne_uproj.Y;
                 county.xMin = ipsw_uproj.X;
-                county.yMin = ipsw_uproj.Y;
+                county.yMin = ipsw_uproj.Y;*/
             }
             catch
             {
@@ -649,6 +574,35 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
         
          return gcar;
+    }
+
+    protected ArcGISRESTClient.ArcGISRESTClient _restClient = null;
+    
+    protected ArcGISRESTClient.ArcGISRESTClient RestClient
+    {
+        get
+        {
+            if (_restClient == null)
+            {
+                _restClient = new ArcGISRESTClient.ArcGISRESTClient(BackendMapServiceURL);
+            }
+
+            return _restClient;
+        }
+    }
+
+    protected string _backendMapServiceURL = null;
+    protected string BackendMapServiceURL
+    {
+        get
+        {
+            if (_backendMapServiceURL == null)
+            {
+                _backendMapServiceURL = GetSettingValueFromConfig("BACKEND_MAP_SERVICE_URL");
+            }
+
+            return _backendMapServiceURL;
+        }
     }
 }
 

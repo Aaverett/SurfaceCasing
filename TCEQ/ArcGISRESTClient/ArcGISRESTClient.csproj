@@ -45,6 +45,8 @@
   <ItemGroup>
     <Compile Include="ArcGISRESTClient.cs" />
     <Compile Include="Field.cs" />
+    <Compile Include="Geometry\Geometry.cs" />
+    <Compile Include="Geometry\Point.cs" />
     <Compile Include="Layer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Table.cs" />

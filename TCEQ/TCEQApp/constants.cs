@@ -35,8 +35,6 @@ public class constants
     public static int GCS_COORDINATE_SYSTEM_ID = 4019;
 
     //This is the unit of measure that coordinates on the map are given in.
-    public static ESRI.ArcGIS.esriSystem.esriUnits MAP_UNITS = ESRI.ArcGIS.esriSystem.esriUnits.esriMeters;
-    public static ESRI.ArcGIS.esriSystem.esriUnits DEFAULT_DISPLAY_UNITS = ESRI.ArcGIS.esriSystem.esriUnits.esriMiles;
     public static int DEFAULT_MAP_LAYER = 0; //The surveys layer is the default.
 
     public static string STANDARD_NOTE = "Note:  This is an approximate recommendation and is subject to confirmation by a <a href=\"http://www.rrc.state.tx.us/environmental/environsupport/gau/index.php\" target=\"_blank\" title=\"TCEQ Website\">RRC Groundwater Advisory Unit</a> (formerly TCEQ Surface Casing) geologist.  These recommendations include an isolation buffer.";

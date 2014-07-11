@@ -26,6 +26,9 @@ namespace TCEQApp.LogicSets
 
             _botFWIZValueString = "(N/A)";
 
+            _showTopFWIZRow = false;
+            _doTopSentence = false;
+
         }
 
         public override System.Web.UI.HtmlControls.HtmlGenericControl GenerateOutputControl()

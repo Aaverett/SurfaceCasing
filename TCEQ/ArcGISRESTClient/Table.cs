@@ -141,7 +141,10 @@ namespace ArcGISRESTClient
                 {
                     string fieldname = _fields[j].FieldName;
 
-                    object val = feature[fieldname];
+                    JContainer jcattrs = (JContainer)feature["attributes"];
+
+                    object val = jcattrs[fieldname];
+
                     if(val == null)
                     {
                         dr[fieldname] = System.DBNull.Value;

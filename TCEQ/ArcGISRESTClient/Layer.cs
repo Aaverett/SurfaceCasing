@@ -30,15 +30,20 @@ namespace ArcGISRESTClient
 
         public virtual System.Data.DataTable Query(string whereClause, JValue geometry)
         {
+            return Query(whereClause, geometry, "esriGeometryPoint");
+        }
+
+        public System.Data.DataTable Query(string whereClause, JValue geometry, string geometryType)
+        {
             JObject parameters = new JObject(
                 new JProperty("where", whereClause));
 
             if (geometry != null)
             {
                 parameters["geometry"] = geometry;
+                parameters["geometryType"] = geometryType;
             }
             
-
             JContainer jc = _parentService.GetJsonData(BaseURL + "/query", parameters);
 
             System.Data.DataTable dt = CreateEmptyDataTable();
@@ -56,7 +61,7 @@ namespace ArcGISRESTClient
 
             JObject parameters = new JObject(
                 new JProperty("geometry", geometry),
-                new JProperty("layers", this._id.ToString()),
+                new JProperty("layers", "all:" + this._id.ToString()),
                 new JProperty("tolerance", 1),
                 new JProperty("mapExtent", _parentService.FullExtent),
                 new JProperty("imageDisplay", "1000,1000,96")
@@ -70,22 +75,28 @@ namespace ArcGISRESTClient
 
             JContainer jc_results = (JContainer) jc["results"];
 
-            JContainer jc_result0 = (JContainer) jc_results[0];
-
-            JContainer jc_attributes = (JContainer)jc_result0["attributes"];
-
-            JValue jv = (JValue) jc_attributes["Pixel Value"];
-
-            object o = jv.Value;
-
-            if (o is double)
+            if (jc_results.Count > 0)
             {
-                ret = (double) o;
+
+                JContainer jc_result0 = (JContainer)jc_results[0];
+
+                JContainer jc_attributes = (JContainer)jc_result0["attributes"];
+
+                JValue jv = (JValue)jc_attributes["Pixel Value"];
+
+                object o = jv.Value;
+
+                if (o is double)
+                {
+                    ret = (double)o;
+                }
+                else if (o is string)
+                {
+                    Double.TryParse((string)o, out ret);
+                }
             }
-            else if (o is string)
-            {
-                Double.TryParse((string) o, out ret);
-            }
+            
+            
 
             return ret;
         }

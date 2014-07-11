@@ -18,8 +18,8 @@ namespace TCEQApp.LogicSets
             base.getData();
 
             //Do anything else.
-
-            double czTop = g.queryRaster(_coords, "sde.sde.TCEQ_CARRIZO_TOP");
+            ArcGISRESTClient.Layer carrizoTopLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("CARRIZO_TOP_LAYER_NAME"));
+            double czTop = carrizoTopLayer.QueryRasterLayer(_coords.X, _coords.Y);
 
             _topmsl = czTop;
             _topgsfc = elevation - czTop;

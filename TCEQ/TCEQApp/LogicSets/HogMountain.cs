@@ -35,10 +35,13 @@ public class HogMountain : BaseLogicSet, ILogicSet
         _topmsl = elevation;
         _topgsfc = 0;
 
-        _top_hog_mountainmsl = g.queryRaster(_coords, "sde.SDE.TCEQ_TOP_HOG_MOUNTAIN");
+        ArcGISRESTClient.Layer hogMountainLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("HOG_MOUNTAIN_TOP_LAYER_NAME"));
+        ArcGISRESTClient.Layer depth3KLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("DEPTH_3K_LAYER_NAME"));
+
+        _top_hog_mountainmsl = hogMountainLayer.QueryRasterLayer(_coords.X, _coords.Y);
         _top_hog_mountaingsfc = elevation - _top_hog_mountainmsl;
 
-        _bottom_hog_mountainmsl = g.queryRaster(_coords, "sde.SDE.TCEQ_3K");
+        _bottom_hog_mountainmsl = depth3KLayer.QueryRasterLayer(_coords.X, _coords.Y);
         _bottom_hog_mountaingsfc = elevation - _bottom_hog_mountainmsl;
     }
 

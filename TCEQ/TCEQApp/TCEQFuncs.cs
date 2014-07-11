@@ -7,8 +7,6 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
 using System.Web.UI.HtmlControls;
-
-using ESRI.ArcGIS.ADF.Web.UI.WebControls;
 /// <summary>
 /// Summary description for TCEQFuncs
 /// </summary>
@@ -20,7 +18,7 @@ public class TCEQFuncs
     /// <param name="targetID">The ID value of the HTML entity that will recieve the content.</param>
     /// <param name="c">The control you want to update.</param>
     /// <returns>Callback result containg the HTML for control C as it exists right now.</returns>
-    public static CallbackResult updateControl(string targettag, string targetID, Control c)
+    /*public static CallbackResult updateControl(string targettag, string targetID, Control c)
     {
         //Create our html writer.  This will be used to generate the HTML for our control.
         System.IO.StringWriter sw = new System.IO.StringWriter();
@@ -41,7 +39,7 @@ public class TCEQFuncs
         CallbackResult cr = new CallbackResult(null, null, "javascript", script);
 
         return cr;
-    }
+    }*/
 
     /// <summary>
     /// Ugly hack to get around having to convert from a layer name to a dataset name.

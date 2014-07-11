@@ -13,9 +13,10 @@ using System.Web.UI.HtmlControls;
 /// </summary>
 public class BaseLogicSet : ILogicSet
 {
+    protected ArcGISRESTClient.ArcGISRESTClient _restClient = null;
+
     //Data members used for the basic calculations.
     //Note:  The name depth is misleading.  The numbers are actually relative to mean sea level.
-
     protected double _depth10k = 0;
     protected double _depth3k = 0;
     protected double _depth1kTop = 0;
@@ -31,9 +32,8 @@ public class BaseLogicSet : ILogicSet
     protected double _usdwgsfc = 0;
     protected double _latitude = 0;
     protected double _longitude = 0;
-    protected string _aquifername = string.Empty;    
-    protected BEGWebAppLib.GISHandler _g;
-    protected ESRI.ArcGIS.Geometry.IPoint _coords;
+    protected string _aquifername = string.Empty;
+    protected ArcGISRESTClient.Geometry.Point _coords = null;
 
     protected string _aquiferFieldCaption = "Aquifer";
     protected string _topFWIZCaption = "Top of fresh water isolation zone";
@@ -84,28 +84,9 @@ public class BaseLogicSet : ILogicSet
     /// </summary>
     protected virtual void getData()
     {
-        //Now we need to begin collecting the data necessary to generate our output div.
-        _elevation = g.queryRaster(_coords, "sde.SDE.tceq_elev");
-        _depth10k = g.queryRaster(_coords, "sde.SDE.tceq_10k");
-        _depth3k = g.queryRaster(_coords, "sde.SDE.tceq_3k");
-        _depth1kTop = g.queryRaster(_coords, "sde.SDE.tceq_tops");
-        _depth1kBottom = g.queryRaster(_coords, "sde.SDE.tceq_1k");
+        //Grab the basic values that most things need from the db.
+        FetchBasicValues();
         
-
-         //There's one feature that we need to retrieve as well.
-        DataTable aqs = g.performBaseFeatureDataQuery(string.Empty, (ESRI.ArcGIS.Geometry.IGeometry)_coords, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelWithin, "sde.SDE.TCEQ_Aquifers");
-        if (aqs != null && aqs.Rows.Count > 0)
-        {
-            _aquifername = (string)aqs.Rows[0]["Name"];
-        }
-
-        //To display the coordinates in lat/long, we need to reproject our feature to a GCS coord system.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected = g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)_coords, 102603, 4019);
-        ESRI.ArcGIS.Geometry.IPoint ip_projected = (ESRI.ArcGIS.Geometry.IPoint)ig_projected;
-
-        _latitude = ip_projected.Y;
-        _longitude = ip_projected.X;
-
         //With the data values retrieved from the DB, we can calculate our output vals.
         _topmsl =  _depth1kTop;
         _topgsfc = elevation - _depth1kTop;
@@ -123,7 +104,43 @@ public class BaseLogicSet : ILogicSet
     
     }
 
+    public string GetSettingValueFromConfig(string settingName)
+    {
+        string ret = string.Empty;
+
+        try
+        {
+            //System.Configuration.Configuration rootWebConfig = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration(null);
+
+            string setting = System.Configuration.ConfigurationManager.AppSettings[settingName];
+
+            if (setting != null)
+            {
+                ret = setting;
+            }
+        }
+        catch
+        {
+            //There's not much to be done in the error handling at this point.  We just return nothing, and let whatever needed the value handle the issue.
+        }
+
+        return ret;
+    }
+
     #region ILogicSet Members
+
+    public virtual ArcGISRESTClient.ArcGISRESTClient RestClient
+    {
+        get
+        {
+            return _restClient;
+        }
+
+        set
+        {
+            _restClient = value;
+        }
+    }
 
     public virtual object GetFactoryKey()
     {
@@ -353,7 +370,7 @@ public class BaseLogicSet : ILogicSet
         return resultsdiv;
     }
 
-    public virtual ESRI.ArcGIS.Geometry.IPoint coords
+    public virtual ArcGISRESTClient.Geometry.Point coords
     {
         get
         {
@@ -466,27 +483,6 @@ public class BaseLogicSet : ILogicSet
         }
     }
 
-    /// <summary>
-    /// This is the GISHandler used to talk back and forth with the GDB.
-    /// </summary>
-    public virtual BEGWebAppLib.GISHandler g
-    {
-        get
-        {
-            if (_g == null)
-            {
-                _g = new BEGWebAppLib.GISHandler(constants.SERVICE_NAME, constants.SERVER_NAME, constants.DATA_FRAME_NAME);
-            }
-
-            return _g;
-        }
-
-        set
-        {
-            _g = value;
-        }
-    }
-
     public virtual double latitude
     {
         get
@@ -513,4 +509,31 @@ public class BaseLogicSet : ILogicSet
 
 
     #endregion
+
+    public void FetchBasicValues()
+    {
+        ArcGISRESTClient.Layer _elevationLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("ELEVATION_LAYER_NAME"));
+        ArcGISRESTClient.Layer _depth10KLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("DEPTH_10K_LAYER_NAME"));
+        ArcGISRESTClient.Layer _depth3KLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("DEPTH_3K_LAYER_NAME"));
+        ArcGISRESTClient.Layer _depth1KTop = RestClient.GetLayerByName(GetSettingValueFromConfig("DEPTH_1K_TOP_LAYER_NAME"));
+        ArcGISRESTClient.Layer _depth1KBottom = RestClient.GetLayerByName(GetSettingValueFromConfig("DEPTH_1K_BOTTOM_LAYER_NAME"));
+        ArcGISRESTClient.Layer _aquiferLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
+
+        _elevation = _elevationLayer.QueryRasterLayer(_coords.X, _coords.Y);
+        _depth10k = _depth10KLayer.QueryRasterLayer(_coords.X, _coords.Y);
+        _depth3k = _depth3KLayer.QueryRasterLayer(_coords.X, _coords.Y);
+        _depth1kTop = _depth1KTop.QueryRasterLayer(_coords.X, _coords.Y);
+        _depth1kBottom = _depth1KBottom.QueryRasterLayer(_coords.X, _coords.Y);
+
+        System.Data.DataTable aqs = _aquiferLayer.Query(null, _coords.GetJValue());
+
+        if (aqs != null && aqs.Rows.Count > 0)
+        {
+            _aquifername = (string)aqs.Rows[0]["Name"];
+        }
+
+        _latitude = _coords.Y;
+        _longitude = _coords.X;
+
+    }
 }

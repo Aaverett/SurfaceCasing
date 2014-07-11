@@ -25,19 +25,16 @@ namespace TCEQApp.LogicSets
 
         protected override void getData()
         {
-            //To display the coordinates in lat/long, we need to reproject our feature to a GCS coord system.
-            ESRI.ArcGIS.Geometry.IGeometry ig_projected = g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)_coords, 102603, 4019);
-            ESRI.ArcGIS.Geometry.IPoint ip_projected = (ESRI.ArcGIS.Geometry.IPoint)ig_projected;
-
             //There's one feature that we need to retrieve as well.
-            System.Data.DataTable aqs = g.performBaseFeatureDataQuery(string.Empty, (ESRI.ArcGIS.Geometry.IGeometry)_coords, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelWithin, "sde.SDE.TCEQ_Aquifers");
+            ArcGISRESTClient.Layer aquiferLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
+            System.Data.DataTable aqs = aquiferLayer.Query(null, _coords.GetJValue());
             if (aqs != null && aqs.Rows.Count > 0)
             {
                 _aquifername = (string)aqs.Rows[0]["Name"];
             }
 
-            _latitude = ip_projected.Y;
-            _longitude = ip_projected.X;
+            _latitude = _coords.Y;
+            _longitude = _coords.X;
         }
 
         public virtual HtmlGenericControl GenerateOutputControl()

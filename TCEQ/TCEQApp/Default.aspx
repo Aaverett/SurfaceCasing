@@ -15,7 +15,7 @@
         var gmap = null;
         var dynMapOv = null;
         var mapService = null;
-        var serviceURL = "http://igor.beg.utexas.edu/arcgis/rest/services/tceq/MapServer";
+        var serviceURL = "http://coastal.beg.utexas.edu:6080/arcgis/rest/services/surfacecasing/surfacecasing_client/MapServer";
         var ext = null;
         var qtask = null;
         var query = null;

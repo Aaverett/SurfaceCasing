@@ -2,19 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 
 namespace TCEQApp.LogicSets
 {
-    public class Gulf_coast_oakville_2013: Gulf_coast_base_fresh_2012, ILogicSet
+    public class GulfCoast_oakville_2014 : BaseLogicSet, ILogicSet
     {
         protected double _top_oakville = 0;
         protected double _top_oakvilleGSFC = 0;
 
         public override object GetFactoryKey()
         {
-            return "Gulf_coast_oakville_2013";
+            return "GulfCoast_oakville_2014";
         }
 
         protected override void getData()
@@ -22,12 +22,16 @@ namespace TCEQApp.LogicSets
             //
             base.getData();
 
+            //Do anything else.
             ArcGISRESTClient.Layer oakvilleLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("OAKVILLE_LAYER_NAME"));
 
             //We need to query the oakville dataset.
             _top_oakville = oakvilleLayer.QueryRasterLayer(_coords.X, _coords.Y);
             _top_oakvilleGSFC = _elevation - _top_oakville;
 
+            _showTopFWIZRow = false;
+            _botFWIZValueString = "N/A";
+            _doTopSentence = false;
         }
 
         /// <summary>
@@ -43,14 +47,14 @@ namespace TCEQApp.LogicSets
             TableCell tcOakvilleValueCell = new TableCell();
 
             string tOakvilleMSLAbove = AboveBelow(_top_oakville);
-            
+
             tcOakvilleLabelCell.Text = "Top of Oakville Isolation Interval";
             tcOakvilleValueCell.Text = Math.Round(Math.Abs(_top_oakvilleGSFC), 0).ToString() + "' Depth (" + Math.Round(Math.Abs(_top_oakville), 0).ToString() + "' " + tOakvilleMSLAbove + " MSL)";
 
             trOakville.Cells.Add(tcOakvilleLabelCell);
             trOakville.Cells.Add(tcOakvilleValueCell);
 
-            _resultsTable.Rows.Add(trOakville);
+            _resultsTable.Rows.AddAt(4, trOakville);
 
             return hgc;
         }

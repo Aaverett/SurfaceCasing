@@ -207,6 +207,37 @@ namespace ArcGISRESTClient
             {
                 return _fullExtent;
             }
-        }        
+        }
+
+        public Layer GetLayerByName(string layerName)
+        {
+            Layer ret = null;
+
+            for (int i = 0; i < _layers.Count; i++)
+            {
+                if (_layers[i].Name == layerName)
+                {
+                    ret = _layers[i];
+                }
+            }
+
+            return ret;
+        }
+
+        public Table GetTableByName(string tableName)
+        {
+            Table ret = null;
+
+            for (int i = 0; i < _tables.Count; i++)
+            {
+                if (_tables[i].Name == tableName)
+                {
+                    ret = _tables[i];
+                }
+            }
+
+            return ret;
+
+        }
     }
 }

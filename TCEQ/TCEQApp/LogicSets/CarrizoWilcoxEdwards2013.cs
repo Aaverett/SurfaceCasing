@@ -22,10 +22,10 @@ namespace TCEQApp.LogicSets
             //
             base.getData();
 
-            _top_edwardsMSL = g.queryRaster(_coords, "sde.SDE.TCEQ_EDWARDS");
+            ArcGISRESTClient.Layer edwardsLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("EDWARDS_LAYER_NAME"));
+
+            _top_edwardsMSL = edwardsLayer.QueryRasterLayer(_coords.X, _coords.Y);
             _top_edwardsGSFC = _elevation - _top_edwardsMSL;
-
-
         }
 
         public override System.Web.UI.HtmlControls.HtmlGenericControl GenerateOutputControl()

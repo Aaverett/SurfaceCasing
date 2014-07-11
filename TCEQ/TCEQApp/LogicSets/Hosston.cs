@@ -23,26 +23,10 @@ public class Hosston : BaseLogicSet, ILogicSet
     {
 
         //Now we need to begin collecting the data necessary to generate our output div.
-        _depth10k = g.queryRaster(_coords, "sde.SDE.tceq_10k");
-        _depth3k = g.queryRaster(_coords, "sde.SDE.tceq_3k");
-        _depth3kHossTop = g.queryRaster(_coords, "sde.SDE.TCEQ_3K_HOSS_TOP");
-        _depth1kTop = g.queryRaster(_coords, "sde.SDE.tceq_tops");
-        _depth1kBottom = g.queryRaster(_coords, "sde.SDE.tceq_1k");
-        _elevation = g.queryRaster(_coords, "sde.SDE.tceq_elev");
+        FetchBasicValues();
 
-        //There's one feature that we need to retrieve as well.
-        DataTable aqs = g.performBaseFeatureDataQuery(string.Empty, (ESRI.ArcGIS.Geometry.IGeometry)_coords, ESRI.ArcGIS.Geodatabase.esriSpatialRelEnum.esriSpatialRelWithin, "sde.SDE.TCEQ_Aquifers");
-        if (aqs != null && aqs.Rows.Count > 0)
-        {
-            _aquifername = (string)aqs.Rows[0]["Name"];
-        }
-
-        //To display the coordinates in lat/long, we need to reproject our feature to a GCS coord system.
-        ESRI.ArcGIS.Geometry.IGeometry ig_projected = g.unprojectGeometry((ESRI.ArcGIS.Geometry.IGeometry)_coords, 102603, 4019);
-        ESRI.ArcGIS.Geometry.IPoint ip_projected = (ESRI.ArcGIS.Geometry.IPoint)ig_projected;
-
-        _latitude = ip_projected.X;
-        _longitude = ip_projected.Y;
+        ArcGISRESTClient.Layer hosstonLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("HOSSTON_3K_TOP_LAYER_NAME"));
+        _depth3kHossTop = hosstonLayer.QueryRasterLayer(_coords.X, _coords.Y);
 
         //With the data values retrieved from the DB, we can calculate our output vals.
         _topmsl = (elevation) + _depth1kTop;

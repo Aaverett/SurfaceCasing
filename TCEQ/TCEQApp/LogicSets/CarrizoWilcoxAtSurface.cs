@@ -23,6 +23,8 @@ public class CarrizoWilcoxAtSurface : BaseLogicSet, ILogicSet
 
         _topgsfc = 0;
         _topmsl = elevation;
+
+
     }
 
     public override System.Web.UI.HtmlControls.HtmlGenericControl GenerateOutputControl()
@@ -152,7 +154,7 @@ public class CarrizoWilcoxAtSurface : BaseLogicSet, ILogicSet
         usdwRow.Cells.Add(usdwLabelCell);
         usdwRow.Cells.Add(usdwValueCell);
 
-        /*//Ground Elevation - for shits and giggles
+        //Ground Elevation - for shits and giggles
         TableRow elevRow = new TableRow();
         elevRow.ID = "elevRow";
         TableCell elevLabelCell = new TableCell();
@@ -162,7 +164,7 @@ public class CarrizoWilcoxAtSurface : BaseLogicSet, ILogicSet
         elevLabelCell.Text = "Ground Elevation";
         elevValueCell.Text = Math.Round(Math.Abs(elevation),0).ToString();
         elevRow.Cells.Add(elevLabelCell);
-        elevRow.Cells.Add(elevValueCell);*/
+        elevRow.Cells.Add(elevValueCell);
 
         //Add all the rows to the table.
         t.Rows.Add(longitudeRow);
