@@ -202,6 +202,7 @@
     <Compile Include="LogicSets\LocalShallowAquifers300_2013.cs" />
     <Compile Include="LogicSets\LocalShallowAquifers400_2013.cs" />
     <Compile Include="LogicSets\Min100FeetWith500.cs" />
+    <Compile Include="LogicSets\ProtectTo350ft_2014.cs" />
     <Compile Include="LogicSets\SaltDome2011.cs" />
     <Compile Include="LogicSets\SaltDome250.cs" />
     <Compile Include="LogicSets\SaltDome300.cs" />

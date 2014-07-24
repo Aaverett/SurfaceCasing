@@ -43,7 +43,9 @@ namespace ArcGISRESTClient
                 parameters["geometry"] = geometry;
                 parameters["geometryType"] = geometryType;
             }
-            
+
+            parameters["outFields"] = "*";
+
             JContainer jc = _parentService.GetJsonData(BaseURL + "/query", parameters);
 
             System.Data.DataTable dt = CreateEmptyDataTable();

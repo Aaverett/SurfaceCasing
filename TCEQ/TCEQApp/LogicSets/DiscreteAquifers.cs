@@ -12,6 +12,7 @@ using System.Web.UI.HtmlControls;
 public class DiscreteAquifers : BaseLogicSet
 {
     protected List<AquiferRecord> aquiferrecords;
+    protected List<AquiferRecord> sortedAquiferRecords;
 
     public override object GetFactoryKey()
     {
@@ -25,7 +26,7 @@ public class DiscreteAquifers : BaseLogicSet
         List<AquiferRecord> rs = new List<AquiferRecord>();
 
         //Now, we'll get the aquifer data.
-        ArcGISRESTClient.Layer l = RestClient.GetLayerByName("sde.SDE.TCEQ_Aquifers");
+        ArcGISRESTClient.Layer l = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
 
         System.Data.DataTable aquifers = l.Query(null, _coords.GetJValue());
 
@@ -51,6 +52,26 @@ public class DiscreteAquifers : BaseLogicSet
                 aquiferrecord.bottomLabel = (string)aquifers.Rows[i]["bot_label"];
             }
 
+            if (aquifers.Columns.Contains("allow_top_gsfc") && !(aquifers.Rows[i]["allow_top_gsfc"] is System.DBNull))
+            {
+                int ii = System.Convert.ToInt32(aquifers.Rows[i]["allow_top_gsfc"]);
+
+                if(ii == 0)
+                {
+                    aquiferrecord.allow_top_gsfc = false;
+                }
+            }
+
+            if (aquifers.Columns.Contains("top_display_value") && !(aquifers.Rows[i]["top_display_value"] is System.DBNull))
+            {
+                aquiferrecord.top_display_value = aquifers.Rows[i]["top_display_value"].ToString();
+            }
+
+            if (aquifers.Columns.Contains("bot_display_value") && !(aquifers.Rows[i]["bot_display_value"] is System.DBNull))
+            {
+                aquiferrecord.top_display_value = aquifers.Rows[i]["bot_display_value"].ToString();
+            }
+
             //Now, we process the data we retrieved from the db.
             if(aquifers.Columns.Contains("top_raster") && aquifers.Columns.Contains("bot_raster"))
             {
@@ -64,17 +85,20 @@ public class DiscreteAquifers : BaseLogicSet
                         {
                             ArcGISRESTClient.Layer topRaster = RestClient.GetLayerByName(top_raster_name);
 
-                            double top_val = topRaster.QueryRasterLayer(_coords.X, _coords.Y);
-                            aquiferrecord.top_elev = top_val;
+                            if (topRaster != null)
+                            {
+                                double top_val = topRaster.QueryRasterLayer(_coords.X, _coords.Y);
+                                aquiferrecord.top_elev = top_val;
 
-                            aquiferrecord.top_gsfc = elevation - top_val;
+                                aquiferrecord.top_gsfc = elevation - top_val;
+                            }
                         }
                         catch
                         {
                         }
                     }
                 }
-
+                
                 if (aquifers.Rows[i]["bot_raster"] is string)
                 {
                         
@@ -86,10 +110,13 @@ public class DiscreteAquifers : BaseLogicSet
                         {
                             ArcGISRESTClient.Layer botRaster = RestClient.GetLayerByName(bot_raster_name);
 
-                            double bot_val = botRaster.QueryRasterLayer(_coords.X, _coords.Y);
-                            aquiferrecord.bottom_elev = bot_val;
+                            if (botRaster != null)
+                            {
+                                double bot_val = botRaster.QueryRasterLayer(_coords.X, _coords.Y);
+                                aquiferrecord.bottom_elev = bot_val;
 
-                            aquiferrecord.bottom_gsfc = elevation - bot_val;
+                                aquiferrecord.bottom_gsfc = elevation - bot_val;
+                            }
                         }
                         catch
                         {
@@ -160,11 +187,15 @@ public class DiscreteAquifers : BaseLogicSet
         t.Rows.Add(longitudeRow);
         t.Rows.Add(latitudeRow);
 
+        
+        //Before composing the aquifer rows part of the table, sort the aquifers.
+        sortAquiferRecords();
+
         //Here, we'll compose the aquifer rows.
 
-        for (int i = 0; i < aquiferrecords.Count; i++)
+        for (int i = 0; i < sortedAquiferRecords.Count; i++)
         {
-            AquiferRecord ar = aquiferrecords[i];
+            AquiferRecord ar = sortedAquiferRecords[i];
 
             if (ar.top_elev != null)
             {
@@ -179,8 +210,17 @@ public class DiscreteAquifers : BaseLogicSet
                 string sTopMSLAbove = constants.MSL_LABEL_ABOVE;
                 if (ar.top_elev < 0) sTopMSLAbove = constants.MSL_LABEL_BELOW;
 
-                topValueCell.Text = Math.Round(Math.Abs(ar.top_gsfc.Value), 0).ToString() + "' Depth (" + Math.Round(Math.Abs(ar.top_elev.Value), 0).ToString() + "' " + sTopMSLAbove + " MSL)";
-
+                if(ar.top_display_value != null)
+                {
+                    topValueCell.Text = ar.top_display_value;
+                }
+                else
+                {
+                    if (ar.top_gsfc != null && ar.top_elev != null)
+                    {
+                        topValueCell.Text = Math.Round(Math.Abs(ar.top_gsfc.Value), 0).ToString() + "' Depth (" + Math.Round(Math.Abs(ar.top_elev.Value), 0).ToString() + "' " + sTopMSLAbove + " MSL)";
+                    }
+                }
                 //Now, do the labels.
                 if (ar.topLabel != null && ar.topLabel != string.Empty)
                 {
@@ -197,30 +237,33 @@ public class DiscreteAquifers : BaseLogicSet
             {
                 //If there's no top value, and this is the first aquifer we encountered, we use the ground elevation.
 
-                //Instantiate and assemble our table row.
-                TableRow topRow = new TableRow();
-                TableCell topLabelCell = new TableCell();
-                TableCell topValueCell = new TableCell();
-                topRow.Cells.Add(topLabelCell);
-                topRow.Cells.Add(topValueCell);
-
-                //Here, we do the above/below thing.
-                string sTopMSLAbove = constants.MSL_LABEL_ABOVE;
-                if (ar.top_elev < 0) sTopMSLAbove = constants.MSL_LABEL_BELOW;
-
-                topValueCell.Text = Math.Round(_elevation, 0).ToString() + "'";
-
-                //Now, do the labels.
-                if (ar.topLabel != null && ar.topLabel != string.Empty)
+                if(ar.allow_top_gsfc)
                 {
-                    topLabelCell.Text = ar.topLabel;
-                }
-                else if (ar.name != null && ar.name != string.Empty)
-                {
-                    topLabelCell.Text = "Ground elevation:";
-                }
+                    //Instantiate and assemble our table row.
+                    TableRow topRow = new TableRow();
+                    TableCell topLabelCell = new TableCell();
+                    TableCell topValueCell = new TableCell();
+                    topRow.Cells.Add(topLabelCell);
+                    topRow.Cells.Add(topValueCell);
 
-                t.Rows.Add(topRow);
+                    //Here, we do the above/below thing.
+                    string sTopMSLAbove = constants.MSL_LABEL_ABOVE;
+                    if (ar.top_elev < 0) sTopMSLAbove = constants.MSL_LABEL_BELOW;
+
+                    topValueCell.Text = Math.Round(_elevation, 0).ToString() + "'";
+
+                    //Now, do the labels.
+                    if (ar.topLabel != null && ar.topLabel != string.Empty)
+                    {
+                        topLabelCell.Text = ar.topLabel;
+                    }
+                    else if (ar.name != null && ar.name != string.Empty)
+                    {
+                        topLabelCell.Text = "Ground elevation:";
+                    }
+
+                    t.Rows.Add(topRow);
+                }
             }
 
             if (ar.bottom_elev != null)
@@ -234,7 +277,17 @@ public class DiscreteAquifers : BaseLogicSet
                 string sBotMSLAbove = constants.MSL_LABEL_ABOVE;
                 if (ar.bottom_elev < 0) sBotMSLAbove = constants.MSL_LABEL_BELOW;
 
-                botValueCell.Text = Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + "' Depth (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + "' " + sBotMSLAbove + " MSL)";
+                if (ar.bot_display_value != null) //If there's a display value
+                {
+                    botValueCell.Text = ar.bot_display_value;
+                }
+                else
+                {
+                    if (ar.bottom_elev != null && ar.bottom_gsfc != null)
+                    {
+                        botValueCell.Text = Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + "' Depth (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + "' " + sBotMSLAbove + " MSL)";
+                    }
+                }
 
                 //Now, do the labels.
                 if (ar.bottomLabel != null && ar.bottomLabel != string.Empty)
@@ -275,7 +328,10 @@ public class DiscreteAquifers : BaseLogicSet
                 string sBotMSLAbove = constants.MSL_LABEL_ABOVE;
                 if (ar.bottom_elev < 0) sBotMSLAbove = constants.MSL_LABEL_BELOW;
 
-                hgc.InnerText = "The base of the " + ar.bottomLabel+ " is estimated to occur at a depth of " + Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL).";
+                if (ar.bottom_elev != null && ar.bottom_gsfc != null)
+                {
+                    hgc.InnerText = "The base of the " + ar.bottomLabel + " is estimated to occur at a depth of " + Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL).";
+                }
             }
 
             resultsdiv.Controls.Add(hgc);
@@ -288,6 +344,51 @@ public class DiscreteAquifers : BaseLogicSet
         resultsdiv.Controls.Add(disclaimerparagraph);
         
         return resultsdiv;
+    }
+
+    protected void sortAquiferRecords()
+    {
+        bool sorted = true;
+
+        AquiferRecord lowest = null;
+
+        sortedAquiferRecords = new List<AquiferRecord>();
+
+        for (int i = 0; i < aquiferrecords.Count; i++)
+        {
+            if(aquiferrecords[i].bottom_gsfc != null)
+            {
+                sortedAquiferRecords.Add(aquiferrecords[i]);
+            }
+        }
+
+        do
+        {
+            sorted = true;
+
+            for(int i=0; (i + 1) < sortedAquiferRecords.Count; i++)
+            {
+                if (lowest == null)
+                {
+                    lowest = sortedAquiferRecords[i];
+                }
+
+                
+                if (lowest.bottom_gsfc != null && sortedAquiferRecords[i +1].bottom_gsfc != null && lowest.bottom_gsfc.Value > sortedAquiferRecords[i + 1].bottom_gsfc.Value)
+                {
+                    sorted = false;
+                    //If we've got two records out of order, switch them around.
+                    AquiferRecord temp = sortedAquiferRecords[i + 1];
+
+                    sortedAquiferRecords[i + 1] = lowest;
+                    sortedAquiferRecords[i] = temp;
+
+                    lowest = temp;
+                }
+                
+            }
+        }
+        while (sorted == false);
     }
 
     protected class AquiferRecord
@@ -303,6 +404,11 @@ public class DiscreteAquifers : BaseLogicSet
         public string topLabel;
         public string bottomLabel;
 
+        public bool allow_top_gsfc;
+
+        public string top_display_value = null;
+        public string bot_display_value = null;
+
         public AquiferRecord()
         {
             name = null;
@@ -315,7 +421,7 @@ public class DiscreteAquifers : BaseLogicSet
             top_gsfc = null;
             bottom_gsfc = null;
 
-
+            allow_top_gsfc = true;
         }
     }
 }

@@ -96,9 +96,11 @@ namespace ArcGISRESTClient
 
         public virtual System.Data.DataTable Query (string whereClause)
         {
+            
             JObject parameters = new JObject(
                 new JProperty("where", whereClause));
 
+            parameters["outFields"] = "*";
 
             JContainer jc = _parentService.GetJsonData(BaseURL + "/query", parameters);
 
@@ -151,7 +153,23 @@ namespace ArcGISRESTClient
                     }
                     else
                     {
-                        dr[fieldname] = val;
+                        if (val is JValue)
+                        {
+                            object oval = (object) ((JValue) val).Value;
+
+                            if (oval == null)
+                            {
+                                dr[fieldname] = System.DBNull.Value;
+                            }
+                            else
+                            {
+                                dr[fieldname] = oval;
+                            }
+                        }
+                        else
+                        {
+                            dr[fieldname] = val;
+                        }
                     }
                 }
 

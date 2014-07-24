@@ -215,7 +215,7 @@ namespace ArcGISRESTClient
 
             for (int i = 0; i < _layers.Count; i++)
             {
-                if (_layers[i].Name == layerName)
+                if (_layers[i].Name.ToLower() == layerName.ToLower())
                 {
                     ret = _layers[i];
                 }
