@@ -323,14 +323,21 @@ public class DiscreteAquifers : BaseLogicSet
 
                 hgc.InnerText = "The water contained in the " + ar.name + " Formation, which is estimated to occur from a depth of " + Math.Round(Math.Abs(ar.top_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.top_elev.Value), 0).ToString() + " feet " + sTopMSLAbove + " MSL) to " + Math.Round(ar.bottom_gsfc.Value, 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL) must be isolated from the water above and below.";
             }
-            else if (i == 0)
+            else if (ar.bottom_elev != 0)
             {
                 string sBotMSLAbove = constants.MSL_LABEL_ABOVE;
                 if (ar.bottom_elev < 0) sBotMSLAbove = constants.MSL_LABEL_BELOW;
 
+                string bottomLabel = ar.bottomLabel;
+
+                if ((bottomLabel == string.Empty || bottomLabel == null) && ar.name != null)
+                {
+                    bottomLabel = ar.name;
+                }
+
                 if (ar.bottom_elev != null && ar.bottom_gsfc != null)
                 {
-                    hgc.InnerText = "The base of the " + ar.bottomLabel + " is estimated to occur at a depth of " + Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL).";
+                    hgc.InnerText = "The base of the " + bottomLabel + " is estimated to occur at a depth of " + Math.Round(Math.Abs(ar.bottom_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL).";
                 }
             }
 
