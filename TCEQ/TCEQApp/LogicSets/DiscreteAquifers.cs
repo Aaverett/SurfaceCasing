@@ -158,6 +158,9 @@ public class DiscreteAquifers : BaseLogicSet
 
     public override System.Web.UI.HtmlControls.HtmlGenericControl GenerateOutputControl()
     {
+        //Before composing the aquifer rows part of the table, sort the aquifers.
+        sortAquiferRecords();
+
         HtmlGenericControl resultsdiv = new HtmlGenericControl("div");
         resultsdiv.Attributes.Add("class", "detailsdiv");
 
@@ -219,11 +222,6 @@ public class DiscreteAquifers : BaseLogicSet
         t.Rows.Add(longitudeRow);
         t.Rows.Add(latitudeRow);
         t.Rows.Add(aquiferRow);
-
-       
-        
-        //Before composing the aquifer rows part of the table, sort the aquifers.
-        sortAquiferRecords();
 
         //Here, we'll compose the aquifer rows.
         for (int i = 0; i < sortedAquiferRecords.Count; i++)
@@ -432,15 +430,15 @@ public class DiscreteAquifers : BaseLogicSet
 
     protected string ComposeAquiferNamesList()
     {
-        string ret = string.Empty;
+      string ret = string.Empty;
 
         List<AquiferRecord> listedAquifers = new List<AquiferRecord>();
 
-        for (int i = 0; i < aquiferrecords.Count; i++)
+        for (int i = 0; i < sortedAquiferRecords.Count; i++)
         {
-            if(aquiferrecords[i].excludeFromList == false)
+            if(sortedAquiferRecords[i].excludeFromList == false)
             {
-                listedAquifers.Add(aquiferrecords[i]);
+                listedAquifers.Add(sortedAquiferRecords[i]);
             }
         }
 
@@ -464,6 +462,7 @@ public class DiscreteAquifers : BaseLogicSet
         AquiferRecord lowest = null;
 
         sortedAquiferRecords = new List<AquiferRecord>();
+        List<AquiferRecord> displayValueAquiferRecords = new List<AquiferRecord>();
         List<AquiferRecord> atEndAquiferRecords = new List<AquiferRecord>();
 
         for (int i = 0; i < aquiferrecords.Count; i++)
@@ -475,6 +474,10 @@ public class DiscreteAquifers : BaseLogicSet
             else if (aquiferrecords[i].bot_display_value != null) { 
                 //If it doesn't have a bottom depth, we can't sort it, so we'll put it at the end.  
                 //We store those in a list for now.
+                displayValueAquiferRecords.Add(aquiferrecords[i]);
+            }
+            else
+            {
                 atEndAquiferRecords.Add(aquiferrecords[i]);
             }
         }
@@ -501,6 +504,12 @@ public class DiscreteAquifers : BaseLogicSet
             }
         }
         while (sorted == false);
+
+        //Tack the unsortable ones on the end.
+        for (int i = 0; i < displayValueAquiferRecords.Count; i++)
+        {
+            sortedAquiferRecords.Add(displayValueAquiferRecords[i]);
+        }
 
         //Tack the unsortable ones on the end.
         for(int i=0; i < atEndAquiferRecords.Count; i++)
