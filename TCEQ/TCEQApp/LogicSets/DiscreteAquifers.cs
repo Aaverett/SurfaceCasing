@@ -274,7 +274,7 @@ public class DiscreteAquifers : BaseLogicSet
                     string sBotMSLAbove = constants.MSL_LABEL_ABOVE;
                     if (ar.bottom_elev < 0) sBotMSLAbove = constants.MSL_LABEL_BELOW;
 
-                    hgc.InnerText = "The water contained in the " + ar.name + " Formation, which is estimated to occur from a depth of " + Math.Round(Math.Abs(ar.top_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.top_elev.Value), 0).ToString() + " feet " + sTopMSLAbove + " MSL) to " + Math.Round(ar.bottom_gsfc.Value, 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL) must be isolated from the water above and below.";
+                    hgc.InnerText = "The " + ar.name + ", occurs from a depth of " + Math.Round(Math.Abs(ar.top_gsfc.Value), 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.top_elev.Value), 0).ToString() + " feet " + sTopMSLAbove + " MSL) to " + Math.Round(ar.bottom_gsfc.Value, 0).ToString() + " feet (" + Math.Round(Math.Abs(ar.bottom_elev.Value), 0).ToString() + " feet " + sBotMSLAbove + " MSL).";
                 }
                 else if (ar.bottom_elev != 0)
                 {
@@ -326,7 +326,7 @@ public class DiscreteAquifers : BaseLogicSet
         }
         else if (ar.name != null && ar.name != string.Empty)
         {
-            botLabelCell.Text = "Bottom of " + ar.name + ":";
+            botLabelCell.Text = "Base of " + ar.name + ":";
             //ret = bottomRow;
         }
 
