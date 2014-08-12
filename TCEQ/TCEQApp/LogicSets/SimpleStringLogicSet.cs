@@ -27,7 +27,7 @@ namespace TCEQApp.LogicSets
         {
             //There's one feature that we need to retrieve as well.
             ArcGISRESTClient.Layer aquiferLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
-            System.Data.DataTable aqs = aquiferLayer.Query(null, _coords.GetJValue());
+            System.Data.DataTable aqs = aquiferLayer.Query(null, _coords.GetJToken());
             if (aqs != null && aqs.Rows.Count > 0)
             {
                 _aquifername = (string)aqs.Rows[0]["Name"];

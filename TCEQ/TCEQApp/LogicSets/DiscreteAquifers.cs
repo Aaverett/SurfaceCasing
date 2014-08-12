@@ -28,7 +28,7 @@ public class DiscreteAquifers : BaseLogicSet
         //Now, we'll get the aquifer data.
         ArcGISRESTClient.Layer l = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
 
-        System.Data.DataTable aquifers = l.Query(null, _coords.GetJValue());
+        System.Data.DataTable aquifers = l.Query(null, _coords.GetJToken());
 
         //For each aquifer we found...
         for (int i = 0; i < aquifers.Rows.Count; i++)

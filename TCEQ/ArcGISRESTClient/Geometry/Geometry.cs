@@ -7,6 +7,8 @@ namespace ArcGISRESTClient.Geometry
 {
     public abstract class Geometry
     {
-        public abstract Newtonsoft.Json.Linq.JValue GetJValue();
+        public abstract Newtonsoft.Json.Linq.JToken GetJToken();
+
+        public abstract Envelope GetBounds();
     }
 }

@@ -27,6 +27,23 @@ public class TCEQAjaxService : System.Web.Services.WebService {
         //InitializeComponent(); 
     }
 
+    protected ArcGISRESTClient.ArcGISRESTClient _frontendRESTClient = null;
+
+    protected ArcGISRESTClient.ArcGISRESTClient frontendRESTClient
+    {
+        get
+        {
+            if(_frontendRESTClient == null)
+            {
+                string frontendURL = GetSettingValueFromConfig("FRONTEND_MAP_SERVICE_URL");
+
+                _frontendRESTClient = new ArcGISRESTClient.ArcGISRESTClient(frontendURL);
+            }
+
+            return _frontendRESTClient;
+        }
+    }
+
     protected string GetSettingValueFromConfig(string settingName)
     {
         string ret = string.Empty;
@@ -60,7 +77,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
         ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(logicLayerName);
         
-        DataTable dt = logicLayer.Query(null,p.GetJValue());
+        DataTable dt = logicLayer.Query(null,p.GetJToken());
 
         //Create a label to display on the map
         string label = string.Empty;
@@ -161,7 +178,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
         ArcGISRESTClient.Layer qwellsLayer = RestClient.GetLayerByName(logicLayerName);
 
-        DataTable dt = qwellsLayer.Query(null, p.GetJValue());
+        DataTable dt = qwellsLayer.Query(null, p.GetJToken());
         
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
 
@@ -294,7 +311,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
         ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(logicLayerName);
 
-        DataTable dt = logicLayer.Query(null, p.GetJValue());
+        DataTable dt = logicLayer.Query(null, p.GetJToken());
 
         //We need to set those features as selected.
 
@@ -395,9 +412,9 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     {
         ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        ArcGISRESTClient.Layer logicLayer = RestClient.GetLayerByName(layerName);
+        ArcGISRESTClient.Layer logicLayer = frontendRESTClient.GetLayerByID(System.Convert.ToInt32(layerName));
 
-        DataTable dt = logicLayer.Query(null, p.GetJValue());
+        DataTable dt = logicLayer.Query(null, p.GetJToken());
 
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
         contentsdiv.ID = "contentsdiv";
@@ -474,7 +491,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     {
         string logicLayerName = GetSettingValueFromConfig("COUNTY_LAYER_NAME");
 
-        ArcGISRESTClient.Layer countyLayer = RestClient.GetLayerByName(logicLayerName);
+        ArcGISRESTClient.Layer countyLayer = frontendRESTClient.GetLayerByName(logicLayerName);
 
         string whereClause = "";
 
@@ -507,7 +524,7 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     public GetCountiesAJAXResponse getCounties()
     {
         //Here, we're going to deal with the little county selector dealie.
-        ArcGISRESTClient.Layer countiesLayer = RestClient.GetLayerByName(GetSettingValueFromConfig("COUNTY_LAYER_NAME"));
+        ArcGISRESTClient.Layer countiesLayer = frontendRESTClient.GetLayerByName(GetSettingValueFromConfig("COUNTY_LAYER_NAME"));
 
         DataTable dt_counties = countiesLayer.Query("hasdata=1");
         

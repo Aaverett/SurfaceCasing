@@ -525,7 +525,7 @@ public class BaseLogicSet : ILogicSet
         _depth1kTop = _depth1KTop.QueryRasterLayer(_coords.X, _coords.Y);
         _depth1kBottom = _depth1KBottom.QueryRasterLayer(_coords.X, _coords.Y);
 
-        System.Data.DataTable aqs = _aquiferLayer.Query(null, _coords.GetJValue());
+        System.Data.DataTable aqs = _aquiferLayer.Query(null, _coords.GetJToken());
 
         if (aqs != null && aqs.Rows.Count > 0)
         {

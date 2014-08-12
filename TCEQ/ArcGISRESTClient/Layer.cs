@@ -19,8 +19,11 @@ namespace ArcGISRESTClient
 
         protected void InitializeWithLayerMetadata(Newtonsoft.Json.Linq.JContainer layerMetadata)
         {
+            //Fetch the real metadata from the service.
+            Newtonsoft.Json.Linq.JContainer jc =  _parentService.GetJsonData(this.BaseURL, null);
+
             //Get the attributes unique to this table from the metadata.
-            object oGeomType = layerMetadata["geometryType"];
+            object oGeomType = jc["geometryType"];
 
             if (oGeomType is Newtonsoft.Json.Linq.JValue)
             {
@@ -28,12 +31,12 @@ namespace ArcGISRESTClient
             }
         }
 
-        public virtual System.Data.DataTable Query(string whereClause, JValue geometry)
+        public virtual System.Data.DataTable Query(string whereClause, JToken geometry)
         {
             return Query(whereClause, geometry, "esriGeometryPoint");
         }
 
-        public System.Data.DataTable Query(string whereClause, JValue geometry, string geometryType)
+        public System.Data.DataTable Query(string whereClause, JToken geometry, string geometryType)
         {
             JObject parameters = new JObject(
                 new JProperty("where", whereClause));
@@ -99,6 +102,84 @@ namespace ArcGISRESTClient
             }
             
             
+
+            return ret;
+        }
+
+        public override void FillDataTableWithJContainer(System.Data.DataTable dt, JContainer jc)
+        {
+            JArray jaFeatures = (JArray)jc["features"];
+
+            for (int i = 0; i < jaFeatures.Count; i++)
+            {
+                System.Data.DataRow dr = dt.NewRow();
+
+                JObject feature = (JObject)jaFeatures[i];
+
+                JContainer jcattrs = (JContainer)feature["attributes"];
+                JObject jcgeomobj = (JObject)feature["geometry"];
+
+                //Handle the geometry.
+                Geometry.Geometry g = ConvertGeometry(jcgeomobj);
+
+                dr["SHAPE"] = g;
+
+                for (int j = 0; j < _fields.Count; j++)
+                {
+                    string fieldname = _fields[j].FieldName;
+
+                    object val = jcattrs[fieldname];
+
+                    if (val == null)
+                    {
+                        dr[fieldname] = System.DBNull.Value;
+                    }
+                    else
+                    {
+                        if (val is JValue)
+                        {
+                            object oval = (object)((JValue)val).Value;
+
+                            if (oval == null)
+                            {
+                                dr[fieldname] = System.DBNull.Value;
+                            }
+                            else
+                            {
+                                dr[fieldname] = oval;
+                            }
+                        }
+                        else
+                        {
+                            dr[fieldname] = val;
+                        }
+                    }
+                }
+
+                dt.Rows.Add(dr);
+            }
+        }
+
+        public Geometry.Geometry ConvertGeometry(Newtonsoft.Json.Linq.JToken jdata)
+        {
+            Geometry.Geometry ret = null;
+
+            try
+            {
+                switch (_geomType)
+                {
+                    case "esriGeometryPoint": ret = new Geometry.Point((Newtonsoft.Json.Linq.JArray)jdata);
+                        break;
+                    case "esriGeometryPolyline": ret = new Geometry.Polyline((Newtonsoft.Json.Linq.JArray)jdata);
+                        break;
+                    case "esriGeometryPolygon": ret = new Geometry.Polygon((Newtonsoft.Json.Linq.JObject)jdata);
+                        break;
+                }
+            }
+            catch
+            {
+
+            }
 
             return ret;
         }

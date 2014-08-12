@@ -477,10 +477,6 @@
             $("#goToCountyContentsDiv").width($('#goToCountyDialog').width());
             $("#goToCountyContentsDiv").height($('#goToCountyDialog').height() - 29);
 
-            
-
-          
-
             //Get the list of counties.
             if (!gotCounties) {
                 var html = "<div id=\"countiesWorkingDiv\">Working... Please wait...</div>";

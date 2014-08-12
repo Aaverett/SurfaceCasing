@@ -224,6 +224,21 @@ namespace ArcGISRESTClient
             return ret;
         }
 
+        public Layer GetLayerByID(int ID)
+        {
+            Layer ret = null;
+
+            for (int i = 0; i < _layers.Count; i++)
+            {
+                if (_layers[i].ID == ID)
+                {
+                    ret = _layers[i];
+                }
+            }
+
+            return ret;
+        }
+
         public Table GetTableByName(string tableName)
         {
             Table ret = null;

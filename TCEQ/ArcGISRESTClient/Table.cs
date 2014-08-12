@@ -129,7 +129,7 @@ namespace ArcGISRESTClient
             return dt;
         }
 
-        public void FillDataTableWithJContainer(System.Data.DataTable dt, JContainer jc)
+        public virtual void FillDataTableWithJContainer(System.Data.DataTable dt, JContainer jc)
         {
             JArray jaFeatures = (JArray) jc["features"];
 

@@ -19,7 +19,7 @@ namespace TCEQApp.LogicSets
             //Now, we'll get the aquifer data.
             ArcGISRESTClient.Layer l = RestClient.GetLayerByName(GetSettingValueFromConfig("AQUIFER_LAYER_NAME"));
 
-            System.Data.DataTable aquifers = l.Query(null, _coords.GetJValue());
+            System.Data.DataTable aquifers = l.Query(null, _coords.GetJToken());
 
             _showAquiferRow = true;
             _aquiferValueString = ComposeAquiferNamesList(aquifers);
