@@ -86,5 +86,13 @@ namespace ArcGISRESTClient.Geometry
         {
             throw new NotImplementedException();
         }
+
+        public override string  GeometryTypeName
+        {
+            get
+            {
+                return "esriGeometryEnvelope";
+            }
+        }
     }
 }

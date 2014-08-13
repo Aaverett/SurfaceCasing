@@ -59,6 +59,8 @@ namespace ArcGISRESTClient
                         break;
                     case "esriFieldTypeString": t = typeof(string);
                         break;
+                    case "esriFieldTypeGeometry": t = typeof(object);
+                        break;
                     default: t = typeof(string);
                         break;
                 }

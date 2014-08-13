@@ -48,6 +48,7 @@ namespace ArcGISRESTClient
             }
 
             parameters["outFields"] = "*";
+            parameters["outSR"] = 4326;
 
             JContainer jc = _parentService.GetJsonData(BaseURL + "/query", parameters);
 
@@ -130,6 +131,11 @@ namespace ArcGISRESTClient
 
                     object val = jcattrs[fieldname];
 
+                    if (fieldname.ToLower() == "SHAPE".ToLower())
+                    {
+                        continue;
+                    }
+                    
                     if (val == null)
                     {
                         dr[fieldname] = System.DBNull.Value;
@@ -154,6 +160,7 @@ namespace ArcGISRESTClient
                             dr[fieldname] = val;
                         }
                     }
+                    
                 }
 
                 dt.Rows.Add(dr);
@@ -168,7 +175,7 @@ namespace ArcGISRESTClient
             {
                 switch (_geomType)
                 {
-                    case "esriGeometryPoint": ret = new Geometry.Point((Newtonsoft.Json.Linq.JArray)jdata);
+                    case "esriGeometryPoint": ret = new Geometry.Point(jdata);
                         break;
                     case "esriGeometryPolyline": ret = new Geometry.Polyline((Newtonsoft.Json.Linq.JArray)jdata);
                         break;

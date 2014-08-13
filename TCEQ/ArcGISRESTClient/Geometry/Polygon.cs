@@ -14,6 +14,8 @@ namespace ArcGISRESTClient.Geometry
         {
             get
             {
+                if (_rings == null) _rings = new List<Ring>();
+
                 return _rings;
             }
         }
@@ -28,8 +30,21 @@ namespace ArcGISRESTClient.Geometry
                 {
                     Ring r = new Ring((Newtonsoft.Json.Linq.JArray) rings[i]);
 
-                    rings.Add(r);
+                    Rings.Add(r);
                 }
+            }
+        }
+
+        public Polygon(Ring ring)
+        {
+            Rings.Add(ring);
+        }
+
+        public Polygon(List<Ring> rings)
+        {
+            for (int i = 0; i < rings.Count; i++)
+            {
+                Rings.Add(rings[i]);
             }
         }
 
@@ -78,7 +93,25 @@ namespace ArcGISRESTClient.Geometry
 
         public override Newtonsoft.Json.Linq.JToken GetJToken()
         {
-            throw new NotImplementedException();
+            Newtonsoft.Json.Linq.JObject jo = new Newtonsoft.Json.Linq.JObject();
+
+            Newtonsoft.Json.Linq.JArray jaRings = new Newtonsoft.Json.Linq.JArray();
+
+            for (int i = 0; i < Rings.Count; i++)
+            {
+                jaRings.Add(Rings[i].GetPathJToken());
+            }
+
+            jo.Add("rings", jaRings);
+            jo.Add("hasZ", false);
+            jo.Add("hasM", false);
+
+            return jo;
+        }
+
+        public override string GeometryTypeName
+        {
+            get { return "esriGeometryPolygon"; }
         }
     }
 }

@@ -174,11 +174,15 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     {
         ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        string logicLayerName = GetSettingValueFromConfig("QWELLS_LAYER_NAME");
+        string wellsLayerName = GetSettingValueFromConfig("QWELLS_LAYER_NAME");
 
-        ArcGISRESTClient.Layer qwellsLayer = RestClient.GetLayerByName(logicLayerName);
+        ArcGISRESTClient.Layer qwellsLayer = frontendRESTClient.GetLayerByName(wellsLayerName);
 
-        DataTable dt = qwellsLayer.Query(null, p.GetJToken());
+        double bufferDistance = 0.01;
+
+        ArcGISRESTClient.Geometry.Polygon pg = p.GetBufferedPolygon(bufferDistance);
+
+        DataTable dt = qwellsLayer.Query(null, pg.GetJToken(), pg.GeometryTypeName);
         
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
 
@@ -509,7 +513,14 @@ public class TCEQAjaxService : System.Web.Services.WebService {
 
             county.countyName = dt_counties.Rows[0]["NAME"].ToString();
 
-            object o = dt_counties.Rows[0]["SHAPE"];
+            ArcGISRESTClient.Geometry.Polygon pg = (ArcGISRESTClient.Geometry.Polygon) dt_counties.Rows[0]["SHAPE"];
+
+            ArcGISRESTClient.Geometry.Envelope env = pg.GetBounds();
+
+            county.xMax = env.MaxX;
+            county.xMin = env.MinX;
+            county.yMax = env.MaxY;
+            county.yMin = env.MinY;
 
             counties[0] = county;
             

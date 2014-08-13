@@ -16,12 +16,26 @@ namespace ArcGISRESTClient.Geometry
             _y = y;
         }
 
-        public Point(Newtonsoft.Json.Linq.JArray jdata)
+        public Point(Newtonsoft.Json.Linq.JToken jdata)
         {
-            if(jdata.Count == 2)
+            if (jdata is Newtonsoft.Json.Linq.JArray)
             {
-                double x = System.Convert.ToDouble(jdata[0]);
-                double y = System.Convert.ToDouble(jdata[1]);
+                Newtonsoft.Json.Linq.JArray ja = (Newtonsoft.Json.Linq.JArray)jdata;
+                if (ja.Count == 2)
+                {
+                    double x = System.Convert.ToDouble(ja[0]);
+                    double y = System.Convert.ToDouble(ja[1]);
+
+                    X = x;
+                    Y = y;
+                }
+            }
+            else if (jdata is Newtonsoft.Json.Linq.JObject)
+            {
+                Newtonsoft.Json.Linq.JObject jo = (Newtonsoft.Json.Linq.JObject)jdata;
+
+                double x = System.Convert.ToDouble(jo["x"]);
+                double y = System.Convert.ToDouble(jo["y"]);
 
                 X = x;
                 Y = y;
@@ -56,14 +70,53 @@ namespace ArcGISRESTClient.Geometry
 
         public override Newtonsoft.Json.Linq.JToken GetJToken()
         {
-            string value = X.ToString() + "," + Y.ToString();
+            Newtonsoft.Json.Linq.JObject jo = new Newtonsoft.Json.Linq.JObject();
 
-            return new Newtonsoft.Json.Linq.JValue(value);
+            jo["x"] = _x;
+            jo["y"] = _y;
+
+            return jo;
+        }
+
+        public Newtonsoft.Json.Linq.JToken GetPathJToken()
+        {
+            Newtonsoft.Json.Linq.JArray jaCords = new Newtonsoft.Json.Linq.JArray();
+
+            jaCords.Add(_x);
+            jaCords.Add(_y);
+
+            return jaCords;
         }
 
         public override Envelope GetBounds()
         {
             return new Envelope(_x, _x, _y, _y);
+        }
+
+        public Polygon GetBufferedPolygon(double bufferDistance)
+        {
+            List<Point> points = new List<Point>();
+
+            for (double operTheta = 0; operTheta < (Math.PI * 2); operTheta += (Math.PI * 2) / 8)
+            {
+                double x = _x + bufferDistance * Math.Cos(operTheta);
+                double y = _y + bufferDistance * Math.Sin(operTheta);
+
+                Point p = new Point(x, y);
+
+                points.Add(p);
+            }
+
+            Ring r = new Ring(points);
+
+            Polygon ret = new Polygon(r);
+
+            return ret;
+        }
+
+        public override string GeometryTypeName
+        {
+            get { return "esriGeometryPoint"; }
         }
     }
 }

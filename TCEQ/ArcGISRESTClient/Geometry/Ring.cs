@@ -11,5 +11,10 @@ namespace ArcGISRESTClient.Geometry
         {
             InitWithJArray(jdata);
         }
+
+        public Ring(List<Point> points)
+        {
+            InitWithPoints(points);
+        }
     }
 }

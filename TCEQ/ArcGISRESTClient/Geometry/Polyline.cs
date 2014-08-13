@@ -19,6 +19,11 @@ namespace ArcGISRESTClient.Geometry
             InitWithJArray(jdata);
         }
 
+        public Polyline(List<Point> points)
+        {
+            InitWithPoints(points);
+        }
+
         protected void InitWithJArray(Newtonsoft.Json.Linq.JArray jdata)
         {
             _points = new List<Point>();
@@ -30,6 +35,16 @@ namespace ArcGISRESTClient.Geometry
                 Point p = new Point(pointdata);
 
                 _points.Add(p);
+            }
+        }
+
+        protected void InitWithPoints(List<Point> points)
+        {
+            _points = new List<Point>();
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                _points.Add(points[i]);
             }
         }
 
@@ -86,6 +101,23 @@ namespace ArcGISRESTClient.Geometry
             Envelope ret = new Envelope(minx, maxx, miny, maxy);
 
             return ret;
+        }
+
+        public Newtonsoft.Json.Linq.JArray GetPathJToken()
+        {
+            Newtonsoft.Json.Linq.JArray jaPoints = new Newtonsoft.Json.Linq.JArray();
+
+            for (int i = 0; i < _points.Count; i++)
+            {
+                jaPoints.Add(_points[i].GetPathJToken());
+            }
+
+            return jaPoints;
+        }
+
+        public override string GeometryTypeName
+        {
+            get { return "esriGeometryPolyline"; }
         }
     }
 }
