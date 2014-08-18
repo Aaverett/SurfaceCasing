@@ -246,13 +246,14 @@
         function handleCasingQueryResult(args) {
             hideWorkingDiv(false);
 
-            var windowOptions = { content: args.detailsHTML
+            var windowOptions = { content: args.detailsHTML +
+            "<div>The estimator site contains data from multiple regional datasets that are spliced together, resulting in some local, narrow (<500 ft) gaps in data at seams and edges. We suggest obtaining casing estimates for several locations that are greater than 500 ft apart for your area of interest.</div>"
             };
 
             if (iWindow != null) iWindow.setMap(null);
 
             iWindow = new google.maps.InfoWindow(windowOptions);
-
+            
             iWindow.open(gmap, casingMarker);
 
             google.maps.event.addListener(casingMarker, 'click', function () {
