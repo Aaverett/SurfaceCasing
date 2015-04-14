@@ -11,6 +11,7 @@
         var toolbarheight = 75;
         var bordertotal = 0;
         var maindivmargin = 30;
+        var clickBufferSize = 8;
 
         var gmap = null;
         var dynMapOv = null;
@@ -265,8 +266,10 @@
 
             showWorkingDiv(false);
 
+            var bufferDistance = getBufferDistance();
+
             //We don't 
-            TCEQAjaxService.logQuery(event.latLng.lng(), event.latLng.lat(), handleLogQueryResult, handleAJAXError);
+            TCEQAjaxService.logQuery(event.latLng.lng(), event.latLng.lat(), bufferDistance, handleLogQueryResult, handleAJAXError);
         }
 
         function handleLogQueryResult(args) {
@@ -328,9 +331,30 @@
             });
         }
 
+        function getBufferDistance() {
+            var zoomLevel = gmap.getZoom();
+
+            var bounds = gmap.getBounds();
+
+            var bwidth = bounds.getNorthEast().lng() - bounds.getSouthWest().lng();
+
+            var div = gmap.getDiv();
+
+            var pwidth = $(div).width();
+
+            var dpp = bwidth / pwidth;
+
+            var bufferDistance = dpp * clickBufferSize;
+
+            return bufferDistance;
+        }
+
         function doIdentifyQuery(event) {
             showWorkingDiv(false);
-            TCEQAjaxService.identifyQuery(event.latLng.lng(), event.latLng.lat(), identifyLayerID, handleIdentifyQueryResponse, handleAJAXError);
+
+            var bufferDistance = getBufferDistance();
+
+            TCEQAjaxService.identifyQuery(event.latLng.lng(), event.latLng.lat(), identifyLayerID, bufferDistance, handleIdentifyQueryResponse, handleAJAXError);
         }
 
         function handleIdentifyQueryResponse(args) {

@@ -170,15 +170,13 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     }
 
     [WebMethod]
-    public AJAXCasingRequestResponse logQuery(double lon, double lat)
+    public AJAXCasingRequestResponse logQuery(double lon, double lat, double bufferDistance)
     {
         ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
         string wellsLayerName = GetSettingValueFromConfig("QWELLS_LAYER_NAME");
 
         ArcGISRESTClient.Layer qwellsLayer = frontendRESTClient.GetLayerByName(wellsLayerName);
-
-        double bufferDistance = 0.01;
 
         ArcGISRESTClient.Geometry.Polygon pg = p.GetBufferedPolygon(bufferDistance);
 
@@ -412,13 +410,15 @@ public class TCEQAjaxService : System.Web.Services.WebService {
     }
 
     [WebMethod]
-    public AJAXCasingRequestResponse identifyQuery(double lon, double lat, string layerName)
+    public AJAXCasingRequestResponse identifyQuery(double lon, double lat, string layerName, double bufferDistance)
     {
         ArcGISRESTClient.Geometry.Point p = new ArcGISRESTClient.Geometry.Point(lon, lat);
 
-        ArcGISRESTClient.Layer logicLayer = frontendRESTClient.GetLayerByID(System.Convert.ToInt32(layerName));
+        ArcGISRESTClient.Layer identifyLayer = frontendRESTClient.GetLayerByID(System.Convert.ToInt32(layerName));
 
-        DataTable dt = logicLayer.Query(null, p.GetJToken());
+        ArcGISRESTClient.Geometry.Polygon pg = p.GetBufferedPolygon(bufferDistance);
+
+        DataTable dt = identifyLayer.Query(null, pg.GetJToken(), pg.GeometryTypeName);
 
         HtmlGenericControl contentsdiv = new HtmlGenericControl("div");
         contentsdiv.ID = "contentsdiv";

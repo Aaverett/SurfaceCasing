@@ -20,6 +20,10 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -215,6 +219,7 @@
     <Compile Include="LogicSets\SaltDome300_1500.cs" />
     <Compile Include="LogicSets\SaltDome700_800.cs" />
     <Compile Include="LogicSets\SimpleStringLogicSet.cs" />
+    <Compile Include="LogicSets\SpartaQueenCity2013.cs" />
     <Compile Include="LogicSets\SpartaQueenCityLogicSet.cs" />
     <Compile Include="LogicSets\WilcoxAndCretaceousTop3K2012.cs" />
     <Compile Include="LogicSets\WilcoxDEM2012.cs" />
